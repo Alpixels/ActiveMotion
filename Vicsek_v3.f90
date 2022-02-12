@@ -39,7 +39,8 @@ PROGRAM ACTIVEMOTIONSIM
     CALL IJDIST                             !SEPARATION DISTANCE BETWEEN I-J
     CALL MEANAG                             !MEAN ANGLE BETWEEN INTERACTION PARTICLES
     CALL AMMOVE                             !MOVE PARTICLES
-    CALL AMFILM                             !SAVE A SNAPSHOT TO BUILD A MOVIE
+    CALL AMSPIC                             !PICTURE OF CURRENT CONFIGURATION
+!    CALL AMFILM                             !SAVE A SNAPSHOT TO BUILD A MOVIE
  ENDDO
 
  STOP
@@ -216,3 +217,26 @@ SUBROUTINE AMFILM
 
  RETURN
 END SUBROUTINE AMFILM
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SUBROUTINE AMSPIC
+ USE AMSVAR
+ IMPLICIT NONE
+ INTEGER:: I
+ CHARACTER*20:: STR,NAMEF
+ 
+ WRITE(STR,*)IAMS
+ STR=ADJUSTL(STR)
+ NAMEF='PICTURE'//trim(STR)//'.dat'
+ OPEN(UNIT=13,FILE=NAMEF)
+
+ DO I=1,NPART
+    WRITE(13,102)RX(I),RY(I),2.0*VX(I),2.0*VY(I)
+ ENDDO
+
+ CLOSE(UNIT=13)
+!! 101 FORMAT(I4.4)
+ 102 FORMAT(4(F15.8))
+
+ RETURN 
+END SUBROUTINE AMSPIC
