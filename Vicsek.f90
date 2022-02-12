@@ -23,7 +23,7 @@ MODULE VICVAR
 
  REAL(S):: BOXX,BOXY
  REAL(S):: RX(NPARTX),RY(NPARTX)
- REAL(S):: ANG(NPARTX)
+ REAL(S):: ANG(NPARTX),NANG(NPARTX)
 
 END MODULE VICVAR
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,6 +38,7 @@ PROGRAM VICSEK
  DO IAM=1,AMSTEPS
     CALL UPDCELLS                           !IDENTIFY PARTICLE IN CELLS 
     CALL UPDGHOST                           !UPDATE GHOST CELLS
+    CALL INTERACT                           !UPDATE ALIGMENT
  ENDDO
 
  STOP
@@ -305,6 +306,42 @@ SUBROUTINE UPDGHOST
 
  ENDDO
 
-
  RETURN
 END SUBROUTINE UPDGHOST
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+SUBROUTINE INTERACT
+ USE VICVAR
+ IMPLICIT NONE
+ INTEGER:: I,J,K,IPART
+ INTEGER:: COUNT,AUX
+ REAL(S):: SM,CM,DX,DY,RIJ
+
+ DO I=1,NPART
+    COUNT=1
+    SM=SIN(ANG(I))
+    CM=COS(ANG(I))
+
+    DO J=1,8
+       AUX=NEIGH(PCELL(I),J)
+       DO K=1,INFCL(AUX)
+          IPART=CELL(AUX,K)
+          DX=RX(I) - RX(IPART)
+          DY=RY(I) - RY(IPART)
+          RIJ=SQRT(DX*DX + DY*DY)
+          !PARTICLES INTERACTS IF THEY ARE CLOSE
+          IF(RIJ .LE. SIGMA)THEN
+            COUNT=COUNT+1
+            SM=SM + SIN(ANG(IPART))
+            CM=CM + COS(ANG(IPART))
+          ENDIF
+       ENDDO
+    ENDDO
+
+    SM=SM/REAL(COUNT)
+    CM=CM/REAL(COUNT)
+    NANG(I)=ATAN2(SM,CM)                    !COMPUTES ANGLE
+ ENDDO
+
+ RETURN
+END SUBROUTINE INTERACT
